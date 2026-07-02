@@ -2,14 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Custom Wallpaper Generator</title>
     <style>
         :root { --bg-color: #1a1a1a; --panel-color: #2a2a2a; --text-color: #ffffff; }
-        body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg-color); color: var(--text-color); display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 320px; background: var(--panel-color); padding: 20px; display: flex; flex-direction: column; gap: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.3); z-index: 10; overflow-y: auto; }
-        #preview-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; }
-        canvas { max-width: 100%; max-height: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: #000; object-fit: contain; }
+        
+        /* Reset and layout baseline */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            font-family: system-ui, sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            display: flex; 
+            height: 100vh; 
+            height: -webkit-fill-available; /* Fixes mobile Safari/Chrome viewport height bugs */
+            overflow: hidden; 
+        }
+        
+        /* Sidebar layout for Desktop/Tablet */
+        #sidebar { 
+            width: 320px; 
+            background: var(--panel-color); 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3); 
+            z-index: 10; 
+            height: 100%;
+            overflow-y: auto; 
+            position: relative;
+        }
+        
+        #preview-container { 
+            flex: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            position: relative; 
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        canvas { 
+            max-width: 100%; 
+            max-height: 100%; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            background: #000; 
+            object-fit: contain; 
+        }
+        
+        /* UI Components styling */
         .control-group { display: flex; flex-direction: column; gap: 8px; }
         .sub-control-panel { background: #222; padding: 12px; border-radius: 6px; display: flex; flex-direction: column; gap: 12px; border: 1px dashed #444; }
         label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #aaa; font-weight: bold; }
@@ -26,12 +71,41 @@
         input[type="color"] { border: none; width: 34px; height: 34px; border-radius: 4px; cursor: pointer; background: none; padding: 0; }
         .remove-btn { background: #cc3333; padding: 5px 10px; height: 34px; }
         .remove-btn:hover { background: #ff4444; }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: auto; /* Keeps buttons pushed to the bottom on desktop */
+            padding-top: 15px;
+        }
+
+        /* 📱 MOBILE RESPONSIVE ENGINE (Screens under 768px wide) */
+        @media (max-width: 767px) {
+            body { flex-direction: column; }
+            
+            #sidebar { 
+                width: 100%; 
+                max-height: 40vh; /* Limits panel height to top portion of screen */
+                height: auto;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            }
+            
+            #preview-container { 
+                height: 60vh; 
+                padding: 15px;
+            }
+
+            .action-buttons {
+                margin-top: 5px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div id="sidebar">
-        <h2>Wallpaper Maker</h2>
+        <h2 style="margin-top: 0; margin-bottom: 5px;">Wallpaper Maker</h2>
         
         <div class="control-group">
             <label>Preset Size</label>
@@ -61,8 +135,10 @@
             <button id="addColorBtn" style="background: #444; margin-top: 5px;">+ Add Color</button>
         </div>
 
-        <button id="generateBtn" style="margin-top: auto; background: #28a745;">Generate Preview</button>
-        <button id="downloadBtn">Download High-Res</button>
+        <div class="action-buttons">
+            <button id="generateBtn" style="background: #28a745;">Generate Preview</button>
+            <button id="downloadBtn">Download High-Res</button>
+        </div>
     </div>
 
     <div id="preview-container">
@@ -235,11 +311,9 @@
                 const freq = (freqInput ? parseFloat(freqInput.value) : 2) * 0.001;
                 const amp = ((ampInput ? parseFloat(ampInput.value) : 8) / 100) * h;
 
-                // 1. Fill base canvas layout with the first color entry
                 ctx.fillStyle = colors[0];
                 ctx.fillRect(0, 0, w, h);
                 
-                // 2. Loop through and draw overlapping solid wave layers from top to bottom
                 for (let i = 1; i < colors.length; i++) {
                     const currentYBase = h * (i / colors.length);
                     
@@ -251,7 +325,6 @@
                         ctx.lineTo(x, y);
                     }
                     
-                    // Anchor to bottom corners to fill the solid bottom chunk of the canvas
                     ctx.lineTo(w, h);
                     ctx.lineTo(0, h);
                     ctx.closePath();
@@ -321,4 +394,3 @@
     </script>
 </body>
 </html>
- 
