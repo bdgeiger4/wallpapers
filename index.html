@@ -7,55 +7,60 @@
     <style>
         :root { --bg-color: #1a1a1a; --panel-color: #2a2a2a; --text-color: #ffffff; }
         
-        /* Reset and layout baseline */
         * { box-sizing: border-box; }
-        body { 
+        
+        body, html { 
             margin: 0; 
-            font-family: system-ui, sans-serif; 
+            padding: 0;
+            width: 100%; 
+            height: 100%; 
             background: var(--bg-color); 
             color: var(--text-color); 
-            display: flex; 
-            height: 100vh; 
-            height: -webkit-fill-available; /* Fixes mobile Safari/Chrome viewport height bugs */
+            font-family: system-ui, sans-serif; 
             overflow: hidden; 
         }
         
-        /* Sidebar layout for Desktop/Tablet */
+        #app-container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: row;
+        }
+        
         #sidebar { 
             width: 320px; 
+            height: 100%;
             background: var(--panel-color); 
-            padding: 20px; 
             display: flex; 
             flex-direction: column; 
+            padding: 20px; 
             gap: 20px; 
-            box-shadow: 2px 0 10px rgba(0,0,0,0.3); 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5); 
             z-index: 10; 
-            height: 100%;
             overflow-y: auto; 
-            position: relative;
+            -webkit-overflow-scrolling: touch; 
+            flex-shrink: 0; 
         }
         
         #preview-container { 
             flex: 1; 
+            height: 100%;
             display: flex; 
             align-items: center; 
             justify-content: center; 
             padding: 20px; 
             position: relative; 
-            height: 100%;
             overflow: hidden;
         }
         
         canvas { 
             max-width: 100%; 
             max-height: 100%; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
             background: #000; 
-            object-fit: contain; 
         }
         
-        /* UI Components styling */
-        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .control-group { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
         .sub-control-panel { background: #222; padding: 12px; border-radius: 6px; display: flex; flex-direction: column; gap: 12px; border: 1px dashed #444; }
         label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #aaa; font-weight: bold; }
         .slider-label-row { display: flex; justify-content: space-between; }
@@ -67,144 +72,99 @@
         #colorContainer { display: flex; flex-direction: column; gap: 8px; }
         .color-row { display: flex; gap: 10px; align-items: center; background: #333; padding: 6px; border-radius: 6px; border: 1px solid #444; cursor: grab; user-select: none; }
         .color-row.dragging { opacity: 0.4; background: #444; cursor: grabbing; }
-        .drag-handle { color: #666; font-size: 18px; padding-left: 4px; cursor: grab; }
-        input[type="color"] { border: none; width: 34px; height: 34px; border-radius: 4px; cursor: pointer; background: none; padding: 0; }
-        .remove-btn { background: #cc3333; padding: 5px 10px; height: 34px; }
+        .drag-handle { color: #666; font-size: 18px; padding-left: 4px; cursor: grab; flex-shrink: 0; }
+        input[type="color"] { border: none; width: 34px; height: 34px; border-radius: 4px; cursor: pointer; background: none; padding: 0; flex-shrink: 0; }
+        .remove-btn { background: #cc3333; padding: 5px 10px; height: 34px; flex-shrink: 0; }
         .remove-btn:hover { background: #ff4444; }
 
         .action-buttons {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-top: auto; /* Keeps buttons pushed to the bottom on desktop */
-            padding-top: 15px;
+            margin-top: auto; 
+            padding-top: 20px;
+            padding-bottom: 20px; 
+            flex-shrink: 0;
         }
 
-        /* 📱 MOBILE RESPONSIVE ENGINE (Screens under 768px wide) */
         @media (max-width: 767px) {
-            body { flex-direction: column; }
-            
-            #sidebar { 
-                width: 100%; 
-                max-height: 40vh; /* Limits panel height to top portion of screen */
-                height: auto;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            }
-            
-            #preview-container { 
-                height: 60vh; 
-                padding: 15px;
-            }
-
-            .action-buttons {
-                margin-top: 5px;
-            }
+            #app-container { flex-direction: column; }
+            #sidebar { width: 100%; height: 45%; border-bottom: 2px solid #000; padding: 15px; gap: 15px; }
+            #preview-container { height: 55%; padding: 15px; }
+            .action-buttons { padding-top: 5px; padding-bottom: 30px; }
         }
     </style>
 </head>
 <body>
 
-    <div id="sidebar">
-        <h2 style="margin-top: 0; margin-bottom: 5px;">Wallpaper Maker</h2>
-        
-        <div class="control-group">
-            <label>Preset Size</label>
-            <select id="sizePreset">
-                <option value="phone">Phone (1440 x 3200)</option>
-                <option value="tablet">Tablet (2048 x 2732)</option>
-                <option value="desktop" selected>Desktop 4K (3840 x 2160)</option>
-            </select>
+    <div id="app-container">
+        <div id="sidebar">
+            <h2 style="margin-top: 0; margin-bottom: 0; flex-shrink: 0;">Wallpaper Maker</h2>
+            
+            <div class="control-group">
+                <label>Preset Size</label>
+                <select id="sizePreset">
+                    <option value="phone">Phone (1440 x 3200)</option>
+                    <option value="tablet">Tablet (2048 x 2732)</option>
+                    <option value="desktop" selected>Desktop 4K (3840 x 2160)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Wave Adjustments</label>
+                <div id="subControls" class="sub-control-panel">
+                    <div class="slider-label-row"><label>Angle</label><span id="waveAngleVal">0°</span></div>
+                    <input type="range" id="waveAngle" min="0" max="360" value="0">
+                    <div class="slider-label-row"><label>Color Spread</label><span id="waveSpreadVal">100%</span></div>
+                    <input type="range" id="waveSpread" min="20" max="200" value="100">
+                    <div class="slider-label-row"><label>Roughness</label><span id="wfVal">2</span></div>
+                    <input type="range" id="waveFreq" min="1" max="10" value="2" step="0.5">
+                    <div class="slider-label-row"><label>Height</label><span id="waVal">8%</span></div>
+                    <input type="range" id="waveAmp" min="1" max="25" value="8">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Colors (Drag to Reorder)</label>
+                <div id="colorContainer"></div>
+                <button id="addColorBtn" style="background: #444; margin-top: 5px;">+ Add Color</button>
+            </div>
+
+            <div class="action-buttons">
+                <button id="downloadBtn">Download High-Res</button>
+            </div>
         </div>
 
-        <div class="control-group">
-            <label>Style</label>
-            <select id="gradientStyle">
-                <option value="linear">Linear Gradient</option>
-                <option value="wave">Wave Pattern</option>
-            </select>
+        <div id="preview-container">
+            <canvas id="wallpaperCanvas"></canvas>
         </div>
-
-        <div class="control-group">
-            <label>Style Adjustments</label>
-            <div id="dynamicSubControls" class="sub-control-panel"></div>
-        </div>
-
-        <div class="control-group">
-            <label>Colors (Drag to Reorder)</label>
-            <div id="colorContainer"></div>
-            <button id="addColorBtn" style="background: #444; margin-top: 5px;">+ Add Color</button>
-        </div>
-
-        <div class="action-buttons">
-            <button id="generateBtn" style="background: #28a745;">Generate Preview</button>
-            <button id="downloadBtn">Download High-Res</button>
-        </div>
-    </div>
-
-    <div id="preview-container">
-        <canvas id="wallpaperCanvas"></canvas>
     </div>
 
     <script>
         const canvas = document.getElementById('wallpaperCanvas');
         const ctx = canvas.getContext('2d');
-
         const defaultColors = ['#ff7e5f', '#feb47b', '#86e3ce', '#d6e6f2'];
         let colors = [];
-
         const sizeMap = {
             phone: { w: 1440, h: 3200 },
             tablet: { w: 2048, h: 2732 },
             desktop: { w: 3840, h: 2160 }
         };
 
-        const controlsConfig = {
-            linear: `
-                <div class="slider-label-row"><label>Angle</label><span id="angleVal">45°</span></div>
-                <input type="range" id="linearAngle" min="0" max="360" value="45">
-                <div class="slider-label-row"><label>Color Spread</label><span id="spreadVal">100%</span></div>
-                <input type="range" id="linearSpread" min="20" max="200" value="100">
-            `,
-            wave: `
-                <div class="slider-label-row"><label>Wave Roughness</label><span id="wfVal">2</span></div>
-                <input type="range" id="waveFreq" min="1" max="10" value="2" step="0.5">
-                <div class="slider-label-row"><label>Wave Height</label><span id="waVal">8%</span></div>
-                <input type="range" id="waveAmp" min="1" max="25" value="8">
-            `
-        };
-
         function loadSavedData() {
             const savedColors = localStorage.getItem('wallpaperColors');
-            if (savedColors) {
-                try { colors = JSON.parse(savedColors); } catch(e) { colors = [...defaultColors]; }
-            } else {
-                colors = [...defaultColors];
-            }
+            colors = savedColors ? JSON.parse(savedColors) : [...defaultColors];
         }
 
         function saveColorsToStorage() {
             localStorage.setItem('wallpaperColors', JSON.stringify(colors));
         }
 
-        function initSubControls() {
-            const style = document.getElementById('gradientStyle').value;
-            const container = document.getElementById('dynamicSubControls');
-            container.innerHTML = controlsConfig[style];
-
-            container.querySelectorAll('input[type="range"]').forEach(slider => {
-                slider.addEventListener('input', () => {
-                    updateSliderValueDisplays();
-                    draw();
-                });
-            });
-            updateSliderValueDisplays();
-        }
-
-        function updateSliderValueDisplays() {
-            if (document.getElementById('linearAngle')) document.getElementById('angleVal').innerText = document.getElementById('linearAngle').value + '°';
-            if (document.getElementById('linearSpread')) document.getElementById('spreadVal').innerText = document.getElementById('linearSpread').value + '%';
-            if (document.getElementById('waveFreq')) document.getElementById('wfVal').innerText = document.getElementById('waveFreq').value;
-            if (document.getElementById('waveAmp')) document.getElementById('waVal').innerText = document.getElementById('waveAmp').value + '%';
+        function updateDisplayValues() {
+            document.getElementById('waveAngleVal').innerText = document.getElementById('waveAngle').value + '°';
+            document.getElementById('waveSpreadVal').innerText = document.getElementById('waveSpread').value + '%';
+            document.getElementById('wfVal').innerText = document.getElementById('waveFreq').value;
+            document.getElementById('waVal').innerText = document.getElementById('waveAmp').value + '%';
         }
 
         function renderColorInputs() {
@@ -218,7 +178,7 @@
                 row.innerHTML = `
                     <span class="drag-handle">☰</span>
                     <input type="color" value="${color}" data-index="${index}">
-                    <input type="text" value="${color}" data-index="${index}" style="flex: 1; text-transform: uppercase; padding: 6px; font-size: 13px;">
+                    <input type="text" value="${color}" data-index="${index}" style="flex: 1; min-width: 0; text-transform: uppercase; padding: 6px; font-size: 13px;">
                     ${colors.length > 3 ? `<button class="remove-btn" data-index="${index}">✕</button>` : ''}
                 `;
                 container.appendChild(row);
@@ -229,125 +189,72 @@
 
         function setupDragAndDrop() {
             const container = document.getElementById('colorContainer');
-            const rows = container.querySelectorAll('.color-row');
-
-            rows.forEach(row => {
-                row.addEventListener('dragstart', (e) => {
-                    row.classList.add('dragging');
-                    e.dataTransfer.effectAllowed = 'move';
-                });
-
+            container.querySelectorAll('.color-row').forEach(row => {
+                row.addEventListener('dragstart', () => row.classList.add('dragging'));
                 row.addEventListener('dragend', () => {
                     row.classList.remove('dragging');
-                    const currentRows = container.querySelectorAll('.color-row');
-                    const newColors = [];
-                    currentRows.forEach(currentRow => {
-                        newColors.push(currentRow.querySelector('input[type="color"]').value);
-                    });
-                    colors = newColors;
+                    colors = [...container.querySelectorAll('.color-row')].map(r => r.querySelector('input[type="color"]').value);
                     saveColorsToStorage();
                     renderColorInputs();
                     draw();
                 });
             });
-
             container.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                const draggingRow = container.querySelector('.dragging');
-                const afterElement = getDragAfterElement(container, e.clientY);
-                if (afterElement == null) {
-                    container.appendChild(draggingRow);
-                } else {
-                    container.insertBefore(draggingRow, afterElement);
-                }
+                const dragging = container.querySelector('.dragging');
+                const after = [...container.querySelectorAll('.color-row:not(.dragging)')].reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = e.clientY - box.top - box.height / 2;
+                    return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest;
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+                after ? container.insertBefore(dragging, after) : container.appendChild(dragging);
             });
         }
 
-        function getDragAfterElement(container, y) {
-            const elements = [...container.querySelectorAll('.color-row:not(.dragging)')];
-            return elements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
-
-        // Core Drawing Engine
         function draw() {
             const preset = document.getElementById('sizePreset').value;
-            const style = document.getElementById('gradientStyle').value;
-            
             canvas.width = sizeMap[preset].w;
             canvas.height = sizeMap[preset].h;
-            const w = canvas.width;
-            const h = canvas.height;
-
+            const w = canvas.width, h = canvas.height;
             ctx.clearRect(0, 0, w, h);
 
-            if (style === 'linear') {
-                const angleDeg = parseFloat(document.getElementById('linearAngle').value);
-                const spreadScale = parseFloat(document.getElementById('linearSpread').value) / 100;
-                const angleRad = (angleDeg * Math.PI) / 180;
-                
-                let r = (Math.sqrt(w*w + h*h) / 2) * spreadScale;
-                let x1 = w/2 - Math.cos(angleRad) * r;
-                let y1 = h/2 - Math.sin(angleRad) * r;
-                let x2 = w/2 + Math.cos(angleRad) * r;
-                let y2 = h/2 + Math.sin(angleRad) * r;
+            const freq = parseFloat(document.getElementById('waveFreq').value) * 0.001;
+            const amp = (parseFloat(document.getElementById('waveAmp').value) / 100) * h;
+            const angleRad = (parseFloat(document.getElementById('waveAngle').value) * Math.PI) / 180;
+            const spreadScale = parseFloat(document.getElementById('waveSpread').value) / 100;
 
-                let grad = ctx.createLinearGradient(x1, y1, x2, y2);
-                colors.forEach((color, i) => grad.addColorStop(i / (colors.length - 1), color));
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, w, h);
-
-            } else if (style === 'wave') {
-                const freqInput = document.getElementById('waveFreq');
-                const ampInput = document.getElementById('waveAmp');
-
-                const freq = (freqInput ? parseFloat(freqInput.value) : 2) * 0.001;
-                const amp = ((ampInput ? parseFloat(ampInput.value) : 8) / 100) * h;
-
-                ctx.fillStyle = colors[0];
-                ctx.fillRect(0, 0, w, h);
-                
-                for (let i = 1; i < colors.length; i++) {
-                    const currentYBase = h * (i / colors.length);
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(0, currentYBase);
-                    
-                    for (let x = 0; x <= w; x += 15) {
-                        let y = currentYBase + Math.sin(x * freq + i) * amp;
-                        ctx.lineTo(x, y);
-                    }
-                    
-                    ctx.lineTo(w, h);
-                    ctx.lineTo(0, h);
-                    ctx.closePath();
-
-                    ctx.fillStyle = colors[i];
-                    ctx.fill(); 
-                }
+            const diag = Math.sqrt(w * w + h * h);
+            const waveBlockHeight = diag * spreadScale;
+            
+            ctx.save();
+            ctx.translate(w / 2, h / 2);
+            ctx.rotate(angleRad);
+            ctx.fillStyle = colors[0];
+            ctx.fillRect(-diag, -diag, diag * 2, diag * 2);
+            
+            for (let i = 1; i < colors.length; i++) {
+                const currentYBase = -waveBlockHeight / 2 + waveBlockHeight * (i / colors.length);
+                ctx.beginPath();
+                ctx.moveTo(-diag/2, currentYBase);
+                for (let x = -diag/2; x <= diag/2; x += 15) ctx.lineTo(x, currentYBase + Math.sin(x * freq + i) * amp);
+                ctx.lineTo(diag/2, diag);
+                ctx.lineTo(-diag/2, diag);
+                ctx.closePath();
+                ctx.fillStyle = colors[i];
+                ctx.fill(); 
             }
+            ctx.restore();
         }
 
-        // Event Listeners
         document.getElementById('colorContainer').addEventListener('input', (e) => {
             const index = e.target.dataset.index;
             const val = e.target.value;
-            
             if (e.target.type === 'color') {
                 colors[index] = val;
                 e.target.nextElementSibling.value = val;
-            } else if (e.target.type === 'text') {
-                if (/^#[0-9A-F]{6}$/i.test(val)) {
-                    colors[index] = val;
-                    e.target.previousElementSibling.value = val.toLowerCase(); 
-                }
+            } else if (e.target.type === 'text' && /^#[0-9A-F]{6}$/i.test(val)) {
+                colors[index] = val;
+                e.target.previousElementSibling.value = val.toLowerCase();
             }
             saveColorsToStorage();
             draw();
@@ -363,35 +270,27 @@
         });
 
         document.getElementById('addColorBtn').addEventListener('click', () => {
-            if (colors.length < 6) {
-                colors.push('#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'));
-                saveColorsToStorage();
-                renderColorInputs();
-                draw();
-            }
+            colors.push('#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'));
+            saveColorsToStorage();
+            renderColorInputs();
+            draw();
         });
 
         document.getElementById('downloadBtn').addEventListener('click', () => {
             const link = document.createElement('a');
-            link.download = `custom-wallpaper-${document.getElementById('sizePreset').value}.png`;
+            link.download = `wallpaper-${document.getElementById('sizePreset').value}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         });
 
-        document.getElementById('gradientStyle').addEventListener('change', () => {
-            initSubControls();
-            draw();
+        document.querySelectorAll('input[type="range"], #sizePreset').forEach(el => {
+            el.addEventListener('input', () => { updateDisplayValues(); draw(); });
         });
-        
-        document.getElementById('sizePreset').addEventListener('change', draw);
-        document.getElementById('generateBtn').addEventListener('click', draw);
 
-        // Run Initialization Sequence
         loadSavedData();
         renderColorInputs();
-        initSubControls();
+        updateDisplayValues();
         draw();
     </script>
 </body>
 </html>
- 
