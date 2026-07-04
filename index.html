@@ -36,10 +36,34 @@
             padding: 20px; 
             gap: 20px; 
             box-shadow: 2px 0 10px rgba(0,0,0,0.5); 
-            z-index: 10; 
+            z-index: 100; 
             overflow-y: auto; 
             -webkit-overflow-scrolling: touch; 
             flex-shrink: 0; 
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        #closeSidebarBtn {
+            display: none; /* Hidden on desktop */
+            background: transparent;
+            color: #aaa;
+            border: none;
+            font-size: 20px;
+            padding: 5px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+        }
+
+        #closeSidebarBtn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
         }
         
         #preview-container { 
@@ -51,6 +75,7 @@
             padding: 20px; 
             position: relative; 
             overflow: hidden;
+            z-index: 10;
         }
         
         canvas { 
@@ -92,19 +117,70 @@
         .import-row button { padding: 10px 14px; flex-shrink: 0; background: #444; }
         .import-row button:hover { background: #555; }
 
+        #mobileMenuToggle { display: none; }
+
+        /* 📱 MOBILE RESPONSIVE ENGINE (SLIDE-OUT DRAWER) */
         @media (max-width: 767px) {
-            #app-container { flex-direction: column; }
-            #sidebar { width: 100%; height: 45%; border-bottom: 2px solid #000; padding: 15px; gap: 15px; }
-            #preview-container { height: 55%; padding: 15px; }
-            .action-buttons { padding-top: 5px; padding-bottom: 30px; }
+            #mobileMenuToggle {
+                display: block;
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 50;
+                background: #007acc;
+                color: white;
+                border: none;
+                border-radius: 30px;
+                padding: 14px 28px;
+                font-size: 15px;
+                font-weight: bold;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.7);
+                cursor: pointer;
+            }
+
+            #mobileMenuToggle:hover { background: #0098ff; }
+
+            #sidebar { 
+                position: fixed;
+                top: 0;
+                left: -100%; /* Hidden off-screen by default */
+                width: 85%; 
+                max-width: 340px;
+                height: 100%; 
+                border-bottom: none;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth slide */
+                box-shadow: 5px 0 25px rgba(0,0,0,0.9);
+            }
+
+            #sidebar.open {
+                left: 0; /* Slides in */
+            }
+
+            #closeSidebarBtn { 
+                display: block; 
+            }
+            
+            #preview-container { 
+                height: 100%; 
+                width: 100%; 
+                padding: 15px; 
+                /* Add bottom padding so the canvas doesn't sit entirely under the floating button */
+                padding-bottom: 80px; 
+            }
         }
     </style>
 </head>
 <body>
 
+    <button id="mobileMenuToggle">⚙️ Edit Settings</button>
+
     <div id="app-container">
         <div id="sidebar">
-            <h2 style="margin-top: 0; margin-bottom: 0; flex-shrink: 0;">Wallpaper Maker</h2>
+            <div class="sidebar-header">
+                <h2 style="margin: 0;">Wallpaper Maker</h2>
+                <button id="closeSidebarBtn" title="Close Menu">✕</button>
+            </div>
             
             <div class="control-group">
                 <label>Preset Size</label>
@@ -163,6 +239,16 @@
             tablet: { w: 2048, h: 2732 },
             desktop: { w: 3840, h: 2160 }
         };
+
+        // --- Mobile Menu Toggle Logic ---
+        document.getElementById('mobileMenuToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('open');
+        });
+
+        document.getElementById('closeSidebarBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('open');
+        });
+        // --------------------------------
 
         function loadSavedData() {
             const savedColors = localStorage.getItem('wallpaperColors');
@@ -259,7 +345,6 @@
             ctx.restore();
         }
 
-        // --- NEW IMPORT LOGIC ---
         document.getElementById('importPaletteBtn').addEventListener('click', () => {
             const inputVal = document.getElementById('importPaletteInput').value.trim();
             if (!inputVal) return;
@@ -268,7 +353,6 @@
                 const parsed = JSON.parse(inputVal);
                 
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    // Filter out invalid hex codes and limit to a max of 6 colors
                     const hexRegex = /^#([0-9A-F]{6})$/i;
                     const validColors = parsed.filter(c => typeof c === 'string' && hexRegex.test(c)).slice(0, 6);
                     
